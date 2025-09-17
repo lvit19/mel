@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uma Pergunta Importante</title>
+    <style>
+        /* CSS Reset e Configurações Globais */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Estilo Mobile-First */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+                Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            overflow: hidden; /* Evita barras de rolagem quando o botão foge */
+            padding: 1rem;
+        }
+
+        .container {
+            text-align: center;
+            transition: opacity 0.5s ease;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 8vw, 4rem); /* Fonte responsiva */
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 2rem;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem; /* Espaço entre os botões */
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, all 0.3s ease; /* Transição para o botão fujão */
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        #yesBtn {
+            background-color: #4CAF50; /* Verde */
+        }
+
+        #noBtn {
+            background-color: #f44336; /* Vermelho */
+            position: absolute; /* ESSENCIAL para o botão fugir */
+        }
+
+        /* Container do Gatinho - Escondido por padrão */
+        .cat-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #catGif {
+            max-width: 90%;
+            width: 300px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Estilos para telas maiores (Desktop) */
+        @media (min-width: 768px) {
+            .btn {
+                padding: 1.2rem 2.5rem;
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="questionContainer">
+        <h1>Você é minha??</h1>
+        <div class="buttons">
+            <button class="btn" id="yesBtn">Sim</button>
+            <button class="btn" id="noBtn">Não</button>
+        </div>
+    </div>
+
+    <div class="cat-container" id="catContainer">
+        <h1>Obaaaa! Sabia! ❤️</h1>
+        <img id="catGif" src="https://i.pinimg.com/originals/3b/de/3f/3bde3f3e147f8f6b0f0a5146b1968843.gif" alt="Gatinho fofo comemorando">
+    </div>
+
+    <script>
+        // Pegando os elementos do HTML
+        const questionContainer = document.getElementById('questionContainer');
+        const catContainer = document.getElementById('catContainer');
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+
+        // Posição inicial do botão "Não" para o cálculo
+        const noBtnRect = noBtn.getBoundingClientRect();
+        const initialNoBtnLeft = noBtnRect.left;
+        const initialNoBtnTop = noBtnRect.top;
+
+        // O que acontece quando clica em "Sim"
+        yesBtn.addEventListener('click', () => {
+            questionContainer.style.opacity = '0';
+            setTimeout(() => {
+                questionContainer.style.display = 'none';
+                catContainer.style.display = 'flex';
+            }, 500); // Espera a transição de opacidade terminar
+        });
+
+        // Função para mover o botão "Não"
+        function moveNoButton() {
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const buttonWidth = noBtn.offsetWidth;
+            const buttonHeight = noBtn.offsetHeight;
+
+            // Calcula uma nova posição aleatória, garantindo que o botão não saia da tela
+            let newLeft = Math.random() * (viewportWidth - buttonWidth);
+            let newTop = Math.random() * (viewportHeight - buttonHeight);
+
+            // Garante que o botão não se sobreponha ao botão "Sim"
+            const yesBtnRect = yesBtn.getBoundingClientRect();
+            while (
+                newLeft < yesBtnRect.right &&
+                newLeft + buttonWidth > yesBtnRect.left &&
+                newTop < yesBtnRect.bottom &&
+                newTop + buttonHeight > yesBtnRect.top
+            ) {
+                newLeft = Math.random() * (viewportWidth - buttonWidth);
+                newTop = Math.random() * (viewportHeight - buttonHeight);
+            }
+
+            noBtn.style.left = `${newLeft}px`;
+            noBtn.style.top = `${newTop}px`;
+        }
+
+        // Adiciona os "escutadores" de evento para o botão "Não" fugir
+        noBtn.addEventListener('mouseover', moveNoButton);
+        noBtn.addEventListener('click', moveNoButton); // Foge também se conseguir clicar
+
+    </script>
+</body>
+</html>
