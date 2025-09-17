@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Uma Mensagem Escondida</title>
+    <title>Um Segredo Pra Você</title>
     <style>
         * {
             margin: 0;
@@ -14,47 +14,40 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             height: 100vh;
-            /* O overflow hidden é importante para a experiência mobile */
             overflow: hidden;
+            background-color: #1a1a1a;
         }
 
         .container {
             position: relative;
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
-        /* 1. O CONTEÚDO ESCONDIDO */
-        .resultado {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            padding: 20px;
+        /* CAMADA 0: O CONTEÚDO SECRETO */
+        .texto-secreto {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: linear-gradient(135deg, #e55d87 0%, #59c173 100%);
+            z-index: 1;
         }
 
-        .resultado h1 {
-            font-size: clamp(3rem, 15vw, 6rem);
+        .texto-secreto h1 {
+            font-size: clamp(2.5rem, 15vw, 6rem);
             color: white;
-            text-shadow: 3px 3px 5px rgba(0,0,0,0.2);
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            padding: 20px;
+            line-height: 1.2;
         }
 
-        .resultado img {
-            max-width: 80%;
-            width: 280px;
-            border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.25);
-        }
-
-        /* 2. A CAMADA DO "EMBAÇADO" */
+        /* CAMADA 1: O CANVAS QUE SERÁ APAGADO */
         #canvas-embacado {
             position: absolute;
             top: 0;
@@ -62,23 +55,37 @@
             width: 100%;
             height: 100%;
             cursor: grabbing;
+            z-index: 2;
+
+	/* EFEITOS ADICIONADOS AQUI */
+            filter: blur(5px) brightness(0.7); /* Adiciona desfoque e escurece a imagem */
         }
         
-        /* 3. A INSTRUÇÃO INICIAL */
-        .instrucao {
+        /* CAMADA 2: OS TEXTOS VISÍVEIS */
+        .texto-visivel {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: rgba(0,0,0,0.7);
-            background-color: rgba(255,255,255,0.6);
-            padding: 15px 25px;
-            border-radius: 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
+            width: 90%;
             text-align: center;
-            pointer-events: none; /* Impede que a instrução bloqueie o toque no canvas */
-            transition: opacity 0.5s ease;
+            color: white;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
+            z-index: 3;
+            pointer-events: none; 
+        }
+
+        #texto-isca {
+            top: 25%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(1.8rem, 7vw, 3rem);
+            font-weight: 500;
+        }
+
+        #texto-instrucao {
+            bottom: 25%; /* Movido para baixo para dar espaço */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(1.2rem, 5vw, 2rem);
+            font-weight: bold;
         }
 
     </style>
@@ -86,43 +93,48 @@
 <body>
 
     <div class="container">
-        <div class="resultado">
-            <h1>SIM! ❤️</h1>
-            <img src="https://media.tenor.com/pUjb_n3_mZ0AAAAC/love.gif" alt="Gatinhos se abraçando">
+        <div class="texto-secreto">
+            <h1>tu é uma puta gostosa 😏</h1>
         </div>
 
         <canvas id="canvas-embacado"></canvas>
 
-        <p class="instrucao" id="instrucaoTexto">Limpe a tela com o dedo!</p>
+        <div id="texto-isca" class="texto-visivel">
+            <p>Eii meu chapa, tem um negocin ne q eu queria contar</p>
+        </div>
+        <div id="texto-instrucao" class="texto-visivel">
+            <p>Passa o dedo pra enxugar 👆</p>
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('canvas-embacado');
-            const ctx = canvas.getContext('2d');
-            const instrucao = document.getElementById('instrucaoTexto');
-
+            const ctx = canvas.getContext('2d', { willReadFrequently: true }); // Otimização
             let isDrawing = false;
-            let instrucaoVisivel = true;
 
-            function resizeCanvas() {
+            // Criamos um objeto de imagem para a textura
+            const texture = new Image();
+            // URL ESTÁVEL E CORRETA para a textura de vidro molhado
+            texture.src = 'https://img.freepik.com/fotos-premium/chuva-azul-de-fundo-gradiente-azul-textura-de-alta-resolucao_1089669-10443.jpg';
+
+            // ESSA É A PARTE MAIS IMPORTANTE:
+            // O código só roda DEPOIS que a imagem da textura for totalmente carregada.
+            texture.onload = () => {
+                setupCanvas();
+            };
+
+            function setupCanvas() {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
                 
-                // Desenha a camada de "embaçado"
-                // Um gradiente suave fica mais bonito que uma cor chapada
-                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-                gradient.addColorStop(1, 'rgba(230, 230, 250, 0.9)');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // Agora, em vez de pintar uma cor, nós DESENHAMOS a imagem da textura
+                // em toda a superfície do canvas, escondendo o que está atrás.
+                ctx.drawImage(texture, 0, 0, canvas.width, canvas.height);
             }
 
-            // Garante que o canvas ocupe a tela toda
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
+            window.addEventListener('resize', setupCanvas);
 
-            // Função para pegar as coordenadas corretas (funciona para mouse e toque)
             function getCoords(e) {
                 if (e.touches && e.touches[0]) {
                     return { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -130,27 +142,17 @@
                 return { x: e.clientX, y: e.clientY };
             }
 
-            // Função que "apaga" o embaçado
             function erase(x, y) {
-                // A mágica está aqui: 'destination-out' faz com que o que for desenhado
-                // se torne transparente, revelando o que está por baixo.
                 ctx.globalCompositeOperation = 'destination-out';
-                
                 ctx.beginPath();
-                // O círculo será nosso "dedo" apagando a tela
-                ctx.arc(x, y, 40, 0, Math.PI * 2); // Aumente o '40' para um dedo "maior"
+                ctx.arc(x, y, 50, 0, Math.PI * 2);
                 ctx.fill();
             }
 
             function start(e) {
                 isDrawing = true;
-                if (instrucaoVisivel) {
-                    instrucao.style.opacity = '0';
-                    instrucaoVisivel = false;
-                }
                 const { x, y } = getCoords(e);
                 erase(x, y);
-                // Previne o scroll da página no mobile enquanto "desenha"
                 e.preventDefault(); 
             }
 
@@ -165,7 +167,6 @@
                 isDrawing = false;
             }
 
-            // Event Listeners para Mouse e Toque
             canvas.addEventListener('mousedown', start);
             canvas.addEventListener('mousemove', draw);
             canvas.addEventListener('mouseup', stop);
